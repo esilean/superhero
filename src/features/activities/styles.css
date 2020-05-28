@@ -1,0 +1,12 @@
+.img-detailed {
+  filter: brightness(30%) !important;
+}
+
+.img-detailed-text {
+  position: absolute !important;
+  bottom: 5% !important;
+  left: 5% !important;
+  width: 100%;
+  height: auto;
+  color: white;
+}

@@ -1,7 +1,29 @@
 import axios, { AxiosResponse } from 'axios';
 import { IActivity } from '../models/activity';
+import { history } from '../../index';
+import { toast } from 'react-toastify';
 
 axios.defaults.baseURL = 'http://localhost:5000/api';
+
+axios.interceptors.response.use(undefined, (error) => {
+  if (error.message === 'Network Error' && !error.response) {
+    toast.error('Network error - API is running?');
+  }
+
+  const { status, data, config } = error.response;
+
+  if (status === 404) {
+    history.push('/notfound');
+  }
+
+  if (status === 400 && config.method === 'get' && data.errors.hasOwnProperty('id')) {
+    history.push('/notfound');
+  }
+
+  if (status === 500) {
+    toast.error('Server error - check the terminal for more info!');
+  }
+});
 
 const responseBody = (response: AxiosResponse) => response.data;
 
@@ -19,7 +41,7 @@ const activitypath = '/activities';
 
 const Activities = {
   list: (): Promise<IActivity[]> => requests.get(`${activitypath}`),
-  details: (id: string) => requests.get(`${activitypath}/${id}`),
+  details: (id: string): Promise<IActivity> => requests.get(`${activitypath}/${id}`),
   create: (activity: IActivity) => requests.post(`${activitypath}`, activity),
   update: (activity: IActivity) => requests.put(`${activitypath}/${activity.id}`, activity),
   delete: (id: string) => requests.del(`${activitypath}/${id}`),

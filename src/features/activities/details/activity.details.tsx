@@ -1,15 +1,19 @@
 import React, { useContext, useEffect } from 'react';
-import { Card, Image, Button } from 'semantic-ui-react';
+import { Grid } from 'semantic-ui-react';
 import ActivityStore from '../../../app/stores/activity.store';
 import { observer } from 'mobx-react-lite';
-import { RouteComponentProps, Link } from 'react-router-dom';
+import { RouteComponentProps } from 'react-router-dom';
 import { LoadingComponent } from '../../../app/layout/loading.component';
+import ActivityDetailedHeader from './activity.detailed.header';
+import ActivityDetailedInfo from './activity.detailed.info';
+import ActivityDetailedChat from './activity.detailed.chat';
+import ActivityDetailedSidebar from './activity.detailed.sidebar';
 
 interface DetailParams {
   id: string;
 }
 
-const ActivityDetails: React.FC<RouteComponentProps<DetailParams>> = ({ match, history }) => {
+const ActivityDetails: React.FC<RouteComponentProps<DetailParams>> = ({ match }) => {
   const activityStore = useContext(ActivityStore);
   const { activity, loadActivity, loadingInitial } = activityStore;
 
@@ -17,25 +21,21 @@ const ActivityDetails: React.FC<RouteComponentProps<DetailParams>> = ({ match, h
     loadActivity(match.params.id);
   }, [loadActivity, match.params.id]);
 
-  if (loadingInitial || !activity) return <LoadingComponent content="Loading activity..." />;
+  if (loadingInitial) return <LoadingComponent content="Loading activity..." />;
+
+  if (!activity) return <h2>Not Gound</h2>;
 
   return (
-    <Card fluid>
-      <Image src={`/assets/categoryImages/${activity!.category}.jpg`} wrapped ui={false} />
-      <Card.Content>
-        <Card.Header>{activity!.title}</Card.Header>
-        <Card.Meta>
-          <span>{activity!.date}</span>
-        </Card.Meta>
-        <Card.Description>{activity!.description}</Card.Description>
-      </Card.Content>
-      <Card.Content extra>
-        <Button.Group widths={2}>
-          <Button as={Link} to={`/activity/${activity!.id}`} basic color="blue" content="Edit" />
-          <Button onClick={() => history.push('/activities')} basic color="grey" content="Cancel" />
-        </Button.Group>
-      </Card.Content>
-    </Card>
+    <Grid>
+      <Grid.Column width={10}>
+        <ActivityDetailedHeader activity={activity} />
+        <ActivityDetailedInfo activity={activity} />
+        <ActivityDetailedChat />
+      </Grid.Column>
+      <Grid.Column width={6}>
+        <ActivityDetailedSidebar />
+      </Grid.Column>
+    </Grid>
   );
 };
 
