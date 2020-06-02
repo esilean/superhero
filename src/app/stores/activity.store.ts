@@ -1,20 +1,74 @@
-import { observable, action, computed, configure, runInAction } from 'mobx';
-import { createContext, SyntheticEvent } from 'react';
+import { observable, action, computed, runInAction } from 'mobx';
+import { SyntheticEvent } from 'react';
 import { IActivity } from '../models/activity';
 import { history } from '../../index';
 import agent from '../api/agent';
 import { toast } from 'react-toastify';
+import { RootStore } from './root.store';
+import { setActivityProps, createAttendee } from '../common/util/util';
+import { HubConnection, HubConnectionBuilder, LogLevel, HubConnectionState } from '@microsoft/signalr';
 
-configure({ enforceActions: 'always' });
+export default class ActivityStore {
+  rootStore: RootStore;
+  constructor(rootStore: RootStore) {
+    this.rootStore = rootStore;
+  }
 
-class ActivityStore {
-  @observable activityRegistry = new Map();
+  @observable activityRegistry: Map<string, IActivity> = new Map();
   @observable activity: IActivity | null = null;
   @observable submitting = false;
   @observable loadingInitial = false;
   @observable target = '';
+  @observable loading = false;
+  //signalr
+  @observable.ref hubConnection: HubConnection | null = null;
 
-  @computed get activitiesByDate() {
+  @action createHubConnection = (activityId: string) => {
+    this.hubConnection = new HubConnectionBuilder()
+      .withUrl('http://localhost:5000/chat', {
+        accessTokenFactory: () => this.rootStore.commonStore.token!,
+      })
+      .configureLogging(LogLevel.None)
+      .build();
+
+    this.hubConnection
+      .start()
+      .then(() => {
+        if (this.hubConnection!.state === HubConnectionState.Connected)
+          this.hubConnection!.invoke('AddToGroup', activityId);
+      })
+      .catch((error) => console.log('Error establishing connection', error));
+
+    this.hubConnection.on('ReceiveComment', (comment) => {
+      runInAction(() => {
+        this.activity!.comments.push(comment);
+      });
+    });
+  };
+
+  @action stopHubConnection = () => {
+    try {
+      if (this.hubConnection!.state === HubConnectionState.Connected) {
+        this.hubConnection!.invoke('RemoveFromGroup', this.activity!.id).then(() =>
+          this.hubConnection!.stop()
+        );
+      }
+    } catch (error) {
+      console.log(`StopHubConnection: ${error}`);
+    }
+  };
+
+  @action addComent = async (values: any) => {
+    values.activityId = this.activity!.id;
+    try {
+      await this.hubConnection!.invoke('SendComment', values);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  @computed
+  get activitiesByDate() {
     return this.groupActivitiesByDate(Array.from(this.activityRegistry.values()));
   }
 
@@ -35,7 +89,7 @@ class ActivityStore {
       const activities = await agent.Activities.list();
       runInAction('loading activities', () => {
         activities.forEach((activity) => {
-          activity.date = new Date(activity.date);
+          setActivityProps(activity, this.rootStore.userStore.user!);
           this.activityRegistry.set(activity.id, activity);
         });
       });
@@ -57,7 +111,7 @@ class ActivityStore {
       try {
         const activity = await agent.Activities.details(id);
         runInAction('getting activity', () => {
-          activity.date = new Date(activity.date);
+          setActivityProps(activity, this.rootStore.userStore.user!);
           this.activity = activity;
           this.activityRegistry.set(activity.id, activity);
         });
@@ -76,6 +130,13 @@ class ActivityStore {
     this.submitting = true;
     try {
       await agent.Activities.create(activity);
+      const attend = createAttendee(this.rootStore.userStore.user!);
+      attend.isHost = true;
+      let attendees = [];
+      attendees.push(attend);
+      activity.attendees = attendees;
+      activity.comments = [];
+      activity.isHost = true;
       runInAction('creating activity', () => {
         this.activityRegistry.set(activity.id, activity);
       });
@@ -122,6 +183,47 @@ class ActivityStore {
       });
     }
   };
-}
 
-export default createContext(new ActivityStore());
+  @action attendActivity = async () => {
+    const attendee = createAttendee(this.rootStore.userStore.user!);
+    this.loading = true;
+    try {
+      await agent.Activities.attend(this.activity!.id);
+      runInAction(() => {
+        if (this.activity) {
+          this.activity.attendees.push(attendee);
+          this.activity.isGoing = true;
+          this.activityRegistry.set(this.activity.id, this.activity);
+        }
+      });
+    } catch (error) {
+      toast.error('Problem signing up to activity');
+    } finally {
+      runInAction(() => {
+        this.loading = false;
+      });
+    }
+  };
+
+  @action cancelAttendance = async () => {
+    this.loading = true;
+    try {
+      await agent.Activities.unattend(this.activity!.id);
+      runInAction(() => {
+        if (this.activity) {
+          this.activity.attendees = this.activity.attendees.filter(
+            (a) => a.username !== this.rootStore.userStore.user?.username
+          );
+          this.activity.isGoing = false;
+          this.activityRegistry.set(this.activity.id, this.activity);
+        }
+      });
+    } catch (error) {
+      toast.error('Problem canceling attendance');
+    } finally {
+      runInAction(() => {
+        this.loading = false;
+      });
+    }
+  };
+}

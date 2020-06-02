@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Container } from 'semantic-ui-react';
 import { ToastContainer } from 'react-toastify';
 
@@ -11,10 +11,29 @@ import HomePage from '../../features/home/home.page';
 import ActivityForm from '../../features/activities/form/activity.form';
 import ActivityDetails from '../../features/activities/details/activity.details';
 import NotFound from './not.found';
+import { RootStoreContext } from '../stores/root.store';
+import { LoadingComponent } from './loading.component';
+import ModalContainer from '../common/modals/modal.container';
+import ProfilePage from '../../features/profiles/profile.page';
 
 const App: React.FC<RouteComponentProps> = ({ location }) => {
+  const rootStore = useContext(RootStoreContext);
+  const { appLoaded, setAppLoaded, token } = rootStore.commonStore;
+  const { getUser } = rootStore.userStore;
+
+  useEffect(() => {
+    if (token) {
+      getUser().finally(() => setAppLoaded());
+    } else {
+      setAppLoaded();
+    }
+  }, [getUser, setAppLoaded, token]);
+
+  if (!appLoaded) return <LoadingComponent content="Loading app..." />;
+
   return (
     <>
+      <ModalContainer />
       <ToastContainer position="bottom-right" />
       <Route path="/" exact component={HomePage} />
       <Route
@@ -31,6 +50,7 @@ const App: React.FC<RouteComponentProps> = ({ location }) => {
                   path={['/create-activity', '/activity/:id']}
                   component={ActivityForm}
                 />
+                <Route path="/profile/:username" component={ProfilePage} />
                 <Route component={NotFound} />
               </Switch>
             </Container>

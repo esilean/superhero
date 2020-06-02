@@ -1,0 +1,12 @@
+.dropzone {
+  border: dashed 3px;
+  border-color: #eee;
+  border-radius: 5px;
+  padding-top: 30px;
+  text-align: center;
+  height: 200px;
+}
+
+.dropzone-active {
+  border-color: green;
+}
