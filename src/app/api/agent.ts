@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { IActivity } from '../models/activity';
+import { IActivity, IActivityEnvelope } from '../models/activity';
 import { history } from '../../index';
 import { toast } from 'react-toastify';
 import { IUser, IUserFormValues, IUserLocal } from '../models/user';
@@ -23,10 +23,20 @@ axios.interceptors.response.use(undefined, (error) => {
     toast.error('Network error - API is running?');
   }
 
-  const { status, data, config } = error.response;
+  const { status, data, config, headers } = error.response;
 
   if (status === 404) {
     history.push('/notfound');
+  }
+
+  if (
+    status === 401 &&
+    headers['www-authenticate'] &&
+    headers['www-authenticate'].includes('Bearer error="invalid_token"')
+  ) {
+    window.localStorage.removeItem('jwt');
+    history.push('/');
+    toast.info('You session has expired! Sorry!');
   }
 
   if (status === 400 && config.method === 'get' && data.errors.hasOwnProperty('id')) {
@@ -65,14 +75,15 @@ const requests = {
 const activitypath = '/api/activities';
 
 const Activities = {
-  list: (): Promise<IActivity[]> => requests.get(`${activitypath}`),
+  list: (params: URLSearchParams): Promise<IActivityEnvelope> =>
+    axios.get(`${activitypath}`, { params: params }).then(sleep(1000)).then(responseBody),
   details: (id: string): Promise<IActivity> => requests.get(`${activitypath}/${id}`),
   create: (activity: IActivity) => requests.post(`${activitypath}`, activity),
   update: (activity: IActivity) => requests.put(`${activitypath}/${activity.id}`, activity),
   delete: (id: string) => requests.del(`${activitypath}/${id}`),
 
-  attend: (id: string) => requests.post(`/activities/${id}/attend`, {}),
-  unattend: (id: string) => requests.del(`/activities/${id}/attend`),
+  attend: (id: string) => requests.post(`${activitypath}/${id}/attend`, {}),
+  unattend: (id: string) => requests.del(`${activitypath}/${id}/attend`),
 };
 
 const userpath = '/appuser';
@@ -90,6 +101,13 @@ const profilephotopath = '/api/photos';
 const Profiles = {
   get: (username: string): Promise<IProfile> => requests.get(`${profilepath}/${username}`),
   edit: (profile: Partial<IProfile>): Promise<void> => requests.put(`${profilepath}`, profile),
+  follow: (username: string) => requests.post(`${profilepath}/${username}/follow`, {}),
+  unfollow: (username: string) => requests.del(`${profilepath}/${username}/follow`),
+  listFollowings: (username: string, predicate: string) =>
+    requests.get(`${profilepath}/${username}/follow?predicate=${predicate}`),
+  listActivities: (username: string, predicate?: string) =>
+    requests.get(`${profilepath}/${username}/activities?predicate=${predicate}`),
+  //photo
   uploadPhoto: (photo: Blob): Promise<IPhoto> => requests.postForm(profilephotopath, photo),
   setMainPhoto: (id: string) => requests.post(`${profilephotopath}/${id}/setMain`, {}),
   deletePhoto: (id: string) => requests.del(`${profilephotopath}/${id}`),

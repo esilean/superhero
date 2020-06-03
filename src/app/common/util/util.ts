@@ -2,7 +2,7 @@ import { IActivity, IAttendee } from '../../models/activity';
 import { IUserLocal } from '../../models/user';
 
 export const combineDateAndTime = (date: Date, time: Date) => {
-  const timeString = time.getHours() + ':' + time.getMinutes() + ':00';
+  const timeString = time.getHours() + ':' + time.getMinutes() + ':00.000';
 
   const year = date.getFullYear();
   const month = date.getMonth() + 1;

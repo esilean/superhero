@@ -13,7 +13,15 @@ export const ActivityListItemAtteendees: React.FC<IProps> = ({ attendees }) => {
         <List.Item key={attendee.username}>
           <Popup
             header={attendee.displayName}
-            trigger={<Image size="mini" circular src={attendee.image || `/assets/user.png`} />}
+            trigger={
+              <Image
+                size="mini"
+                bordered
+                className={attendee.following ? 'img-following' : ''}
+                circular
+                src={attendee.image || `/assets/user.png`}
+              />
+            }
           />
         </List.Item>
       ))}

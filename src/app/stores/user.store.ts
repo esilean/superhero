@@ -4,6 +4,7 @@ import { IUserLocal, IUserFormValues } from '../models/user';
 import { RootStore } from './root.store';
 
 import { history } from '../../index';
+import { toast } from 'react-toastify';
 
 export default class UserStore {
   rootStore: RootStore;
@@ -51,7 +52,7 @@ export default class UserStore {
         this.user = user;
       });
     } catch (error) {
-      console.log(error);
+      toast.error('Problem getting user');
     }
   };
 
