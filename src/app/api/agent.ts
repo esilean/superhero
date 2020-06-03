@@ -25,6 +25,10 @@ axios.interceptors.response.use(undefined, (error) => {
 
   const { status, data, config, headers } = error.response;
 
+  if (status === 502) {
+    toast.error('Bad gateway - API is running?');
+  }
+
   if (status === 404) {
     history.push('/notfound');
   }
