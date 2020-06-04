@@ -7,8 +7,8 @@ import { format } from 'date-fns';
 import { RootStoreContext } from '../../app/stores/root.store';
 
 const panes = [
-  { menuItem: 'Future Events', pane: { key: 'futureEvents' } },
-  { menuItem: 'Past Events', pane: { key: 'pastEvents' } },
+  { menuItem: 'Future Activities', pane: { key: 'futureActivities' } },
+  { menuItem: 'Past Activities', pane: { key: 'pastActivities' } },
   { menuItem: 'Hosting', pane: { key: 'hosted' } },
 ];
 

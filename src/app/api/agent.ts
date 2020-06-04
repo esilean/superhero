@@ -5,7 +5,10 @@ import { toast } from 'react-toastify';
 import { IUser, IUserFormValues, IUserLocal } from '../models/user';
 import { IProfile, IPhoto } from '../models/profile';
 
-axios.defaults.baseURL = 'http://localhost:5000';
+const URL_APP_API = '/api';
+const URL_AUTH_API = '/appuser';
+
+axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 
 axios.interceptors.request.use(
   (config) => {
@@ -56,14 +59,14 @@ axios.interceptors.response.use(undefined, (error) => {
 
 const responseBody = (response: AxiosResponse) => response.data;
 
-const sleep = (ms: number) => (response: AxiosResponse) =>
-  new Promise<AxiosResponse>((resolve) => setTimeout(() => resolve(response), ms));
+// const sleep = (ms: number) => (response: AxiosResponse) =>
+//   new Promise<AxiosResponse>((resolve) => setTimeout(() => resolve(response), ms));
 
 const requests = {
-  get: (url: string) => axios.get(url).then(sleep(1000)).then(responseBody),
-  post: (url: string, body: {}) => axios.post(url, body).then(sleep(1000)).then(responseBody),
-  put: (url: string, body: {}) => axios.put(url, body).then(sleep(1000)).then(responseBody),
-  del: (url: string) => axios.delete(url).then(sleep(1000)).then(responseBody),
+  get: (url: string) => axios.get(url).then(responseBody),
+  post: (url: string, body: {}) => axios.post(url, body).then(responseBody),
+  put: (url: string, body: {}) => axios.put(url, body).then(responseBody),
+  del: (url: string) => axios.delete(url).then(responseBody),
 
   postForm: (url: string, file: Blob) => {
     let formData = new FormData();
@@ -76,11 +79,11 @@ const requests = {
   },
 };
 
-const activitypath = '/api/activities';
+const activitypath = `${URL_APP_API}/activities`;
 
 const Activities = {
   list: (params: URLSearchParams): Promise<IActivityEnvelope> =>
-    axios.get(`${activitypath}`, { params: params }).then(sleep(1000)).then(responseBody),
+    axios.get(`${activitypath}`, { params: params }).then(responseBody),
   details: (id: string): Promise<IActivity> => requests.get(`${activitypath}/${id}`),
   create: (activity: IActivity) => requests.post(`${activitypath}`, activity),
   update: (activity: IActivity) => requests.put(`${activitypath}/${activity.id}`, activity),
@@ -90,17 +93,16 @@ const Activities = {
   unattend: (id: string) => requests.del(`${activitypath}/${id}/attend`),
 };
 
-const userpath = '/appuser';
-const localuserpath = '/api/user';
+const userpath = `${URL_APP_API}/user`;
 
 const User = {
-  current: (): Promise<IUserLocal> => requests.get(`${localuserpath}/local`),
-  login: (user: IUserFormValues): Promise<IUser> => requests.post(`${userpath}/login`, user),
-  register: (user: IUserFormValues): Promise<IUser> => requests.post(`${userpath}/register`, user),
+  current: (): Promise<IUserLocal> => requests.get(`${userpath}/local`),
+  login: (user: IUserFormValues): Promise<IUser> => requests.post(`${URL_AUTH_API}/login`, user),
+  register: (user: IUserFormValues): Promise<IUser> => requests.post(`${URL_AUTH_API}/register`, user),
 };
 
-const profilepath = '/api/profiles';
-const profilephotopath = '/api/photos';
+const profilepath = `${URL_APP_API}/profiles`;
+const profilephotopath = `${URL_APP_API}/photos`;
 
 const Profiles = {
   get: (username: string): Promise<IProfile> => requests.get(`${profilepath}/${username}`),

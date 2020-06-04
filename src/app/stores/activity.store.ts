@@ -10,6 +10,7 @@ import { HubConnection, HubConnectionBuilder, LogLevel, HubConnectionState } fro
 import { format } from 'date-fns';
 
 const LIMIT = 3;
+const CHAT_URL = process.env.REACT_APP_API_CHAT_URL;
 
 export default class ActivityStore {
   rootStore: RootStore;
@@ -77,26 +78,29 @@ export default class ActivityStore {
   };
 
   @action createHubConnection = (activityId: string) => {
-    this.hubConnection = new HubConnectionBuilder()
-      .withUrl('http://localhost:5000/chat', {
-        accessTokenFactory: () => this.rootStore.commonStore.token!,
-      })
-      .configureLogging(LogLevel.None)
-      .build();
+    try {
+      if (!CHAT_URL) throw new Error('Chat Url is not defined');
 
-    this.hubConnection
-      .start()
-      .then(() => {
+      this.hubConnection = new HubConnectionBuilder()
+        .withUrl(CHAT_URL, {
+          accessTokenFactory: () => this.rootStore.commonStore.token!,
+        })
+        .configureLogging(LogLevel.None)
+        .build();
+
+      this.hubConnection.start().then(() => {
         if (this.hubConnection!.state === HubConnectionState.Connected)
           this.hubConnection!.invoke('AddToGroup', activityId);
-      })
-      .catch((error) => toast.error('Problem establishing connection'));
-
-    this.hubConnection.on('ReceiveComment', (comment) => {
-      runInAction(() => {
-        this.activity!.comments.push(comment);
       });
-    });
+
+      this.hubConnection.on('ReceiveComment', (comment) => {
+        runInAction(() => {
+          this.activity!.comments.push(comment);
+        });
+      });
+    } catch (error) {
+      toast.error('Problem establishing connection');
+    }
   };
 
   @action stopHubConnection = () => {

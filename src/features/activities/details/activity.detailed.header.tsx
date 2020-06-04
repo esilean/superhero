@@ -43,7 +43,7 @@ const ActivityDetailedHeader: React.FC<IProps> = ({ activity }) => {
       <Segment clearing attached="bottom">
         {activity.isHost ? (
           <Button as={Link} to={`/activity/${activity.id}`} color="orange" floated="right">
-            Manage Event
+            Manage Activity
           </Button>
         ) : activity.isGoing ? (
           <Button loading={loading} onClick={cancelAttendance}>
