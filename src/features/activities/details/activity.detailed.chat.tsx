@@ -7,6 +7,11 @@ import { Link } from 'react-router-dom';
 import { TextAreaInput } from '../../../app/common/form/textarea.input';
 import { formatDistance } from 'date-fns';
 import { IActivity } from '../../../app/models/activity';
+import { combineValidators, isRequired } from 'revalidate';
+
+const validate = combineValidators({
+  body: isRequired('body'),
+});
 
 interface IProps {
   activity: IActivity;
@@ -48,11 +53,21 @@ const ActivityDetailedChat: React.FC<IProps> = ({ activity }) => {
               </Comment>
             ))}
           <FinalForm
+            validate={validate}
+            validateOnBlur={false}
+            key={new Date().toString()}
             onSubmit={addComent}
-            render={({ handleSubmit, submitting, form }) => (
+            render={({ handleSubmit, submitting, form, invalid, pristine }) => (
               <Form onSubmit={() => handleSubmit()!.then(() => form.reset())}>
                 <Field name="body" component={TextAreaInput} rows={2} placeholder="Add your comment" />
-                <Button content="Add Reply" labelPosition="left" icon="edit" primary loading={submitting} />
+                <Button
+                  content="Add Reply"
+                  labelPosition="left"
+                  icon="edit"
+                  primary
+                  disabled={invalid || pristine}
+                  loading={submitting}
+                />
               </Form>
             )}
           />

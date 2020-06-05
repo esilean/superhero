@@ -22,11 +22,13 @@ axios.interceptors.request.use(
 );
 
 axios.interceptors.response.use(undefined, (error) => {
+  const originalRequest = error.config;
+
   if (error.message === 'Network Error' && !error.response) {
     toast.error('Network error - API is running?');
   }
 
-  const { status, data, config, headers } = error.response;
+  const { status, data, config } = error.response;
 
   if (status === 502) {
     toast.error('Bad gateway - API is running?');
@@ -36,14 +38,28 @@ axios.interceptors.response.use(undefined, (error) => {
     history.push('/notfound');
   }
 
-  if (
-    status === 401 &&
-    headers['www-authenticate'] &&
-    headers['www-authenticate'].includes('Bearer error="invalid_token"')
-  ) {
+  if (status === 401 && originalRequest.url.endsWith('refresh')) {
     window.localStorage.removeItem('jwt');
+    window.localStorage.removeItem('refToken');
     history.push('/');
-    toast.info('You session has expired! Sorry!');
+    toast.info('You session has expired!');
+    return Promise.reject(error);
+  }
+
+  if (status === 401 && !originalRequest._retry) {
+    originalRequest._retry = true;
+    return axios
+      .post(`${URL_AUTH_API}/refresh`, {
+        token: window.localStorage.getItem('jwt'),
+        refreshToken: window.localStorage.getItem('refToken'),
+      })
+      .then((res) => {
+        window.localStorage.setItem('jwt', res.data.token);
+        window.localStorage.setItem('refToken', res.data.refreshToken);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+        return axios(originalRequest);
+      })
+      .catch((error) => console.log(error));
   }
 
   if (status === 400 && config.method === 'get' && data.errors.hasOwnProperty('id')) {
@@ -54,7 +70,8 @@ axios.interceptors.response.use(undefined, (error) => {
     toast.error('Server error - check the terminal for more info!');
   }
 
-  throw error.response;
+  toast.error('EITA!');
+  //throw error.response;
 });
 
 const responseBody = (response: AxiosResponse) => response.data;
@@ -100,6 +117,16 @@ const User = {
   login: (user: IUserFormValues): Promise<IUser> => requests.post(`${URL_AUTH_API}/login`, user),
   register: (user: IUserFormValues): Promise<IUser> => requests.post(`${URL_AUTH_API}/register`, user),
   fbLogin: (accessToken: string) => requests.post(`${URL_AUTH_API}/facebook`, { accessToken }),
+
+  //refresh token for signalR
+  refreshToken: (token: string, refreshToken: string) => {
+    return axios.post(`${URL_AUTH_API}/refresh`, { token, refreshToken }).then((res) => {
+      window.localStorage.setItem('jwt', res.data.token);
+      window.localStorage.setItem('refToken', res.data.refreshToken);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+      return res.data.token;
+    });
+  },
 };
 
 const profilepath = `${URL_APP_API}/profiles`;

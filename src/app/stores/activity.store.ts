@@ -8,6 +8,7 @@ import { RootStore } from './root.store';
 import { setActivityProps, createAttendee } from '../common/util/util';
 import { HubConnection, HubConnectionBuilder, LogLevel, HubConnectionState } from '@microsoft/signalr';
 import { format } from 'date-fns';
+import jwt from 'jsonwebtoken';
 
 const LIMIT = 3;
 const CHAT_URL = process.env.REACT_APP_API_CHAT_URL;
@@ -77,13 +78,32 @@ export default class ActivityStore {
     );
   };
 
+  checkTokenAndRefreshIfExpired = async () => {
+    const token = window.localStorage.getItem('jwt');
+    const refreshToken = window.localStorage.getItem('refToken');
+    if (token && refreshToken) {
+      const decodedToken: any = jwt.decode(token);
+      if (decodedToken && Date.now() >= decodedToken.exp * 1000 - 5000) {
+        try {
+          return await agent.User.refreshToken(token, refreshToken);
+        } catch (error) {
+          toast.error('Problem connecting to the chat');
+        }
+      } else {
+        return token;
+      }
+    } else {
+      throw new Error('token not found');
+    }
+  };
+
   @action createHubConnection = (activityId: string) => {
     try {
       if (!CHAT_URL) throw new Error('Chat Url is not defined');
 
       this.hubConnection = new HubConnectionBuilder()
         .withUrl(CHAT_URL, {
-          accessTokenFactory: () => this.rootStore.commonStore.token!,
+          accessTokenFactory: () => this.checkTokenAndRefreshIfExpired(),
         })
         .configureLogging(LogLevel.None)
         .build();

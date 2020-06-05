@@ -24,9 +24,10 @@ export default class UserStore {
     try {
       const user = await agent.User.fbLogin(userLoginResp.accessToken);
       runInAction(() => {
-        this.user = user;
-        this.rootStore.modalStore.closeModal();
+        //this.user = user;
         this.rootStore.commonStore.setToken(user.token);
+        this.rootStore.commonStore.setRefreshToken(user.refreshToken);
+        this.rootStore.modalStore.closeModal();
       });
       history.push('/activities');
     } catch (error) {
@@ -43,8 +44,9 @@ export default class UserStore {
       const user = await agent.User.login(values);
       runInAction(() => {
         this.user = user;
-        this.rootStore.modalStore.closeModal();
         this.rootStore.commonStore.setToken(user.token);
+        this.rootStore.commonStore.setRefreshToken(user.refreshToken);
+        this.rootStore.modalStore.closeModal();
       });
       history.push('/activities');
     } catch (error) {
@@ -58,6 +60,7 @@ export default class UserStore {
       runInAction(() => {
         this.user = user;
         this.rootStore.commonStore.setToken(user.token);
+        this.rootStore.commonStore.setRefreshToken(user.refreshToken);
         this.rootStore.modalStore.closeModal();
       });
       history.push('/activities');
@@ -79,6 +82,7 @@ export default class UserStore {
 
   @action logout = () => {
     this.rootStore.commonStore.setToken(null);
+    this.rootStore.commonStore.setRefreshToken(null);
     this.user = null;
     history.push('/');
   };
