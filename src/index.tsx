@@ -10,6 +10,7 @@ import App from './app/layout/app';
 
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-datepicker/dist/react-datepicker.css';
+import 'semantic-ui-css/semantic.min.css';
 import './styles/styles.css';
 
 export const history = createBrowserHistory();
