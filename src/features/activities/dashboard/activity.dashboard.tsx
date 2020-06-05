@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState } from 'react';
-import { Grid, Loader } from 'semantic-ui-react';
+import { Grid, Loader, Responsive } from 'semantic-ui-react';
 import { observer } from 'mobx-react-lite';
 import ActivityList from './activity.list';
 import { RootStoreContext } from '../../../app/stores/root.store';
@@ -26,7 +26,7 @@ const ActivityDashboard: React.FC = () => {
 
   return (
     <Grid>
-      <Grid.Column width={10}>
+      <Grid.Column computer={10} mobile={16}>
         {loadingInitial && page === 0 ? (
           <ActivityListItemPlaceholder />
         ) : (
@@ -48,8 +48,8 @@ const ActivityDashboard: React.FC = () => {
           // />
         )}
       </Grid.Column>
-      <Grid.Column width={6}>
-        <ActivityFilters />
+      <Grid.Column computer={6}>
+        <Responsive as={ActivityFilters} minWidth={1024} />
       </Grid.Column>
       <Grid.Column width={10}>
         <Loader active={loadingNext} />

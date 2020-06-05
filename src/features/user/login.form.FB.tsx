@@ -17,7 +17,14 @@ const LoginFormFB: React.FC<IProps> = ({ fbCallback, loading }) => {
         fields="name,email,picture"
         callback={fbCallback}
         render={(renderProps: any) => (
-          <Button onClick={renderProps.onClick} type="button" fluid color="facebook" loading={loading}>
+          <Button
+            onClick={renderProps.onClick}
+            type="button"
+            fluid
+            color="facebook"
+            loading={loading}
+            disabled={true}
+          >
             <Icon name="facebook" />
             Facebook
           </Button>
