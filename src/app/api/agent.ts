@@ -99,6 +99,7 @@ const User = {
   current: (): Promise<IUserLocal> => requests.get(`${userpath}/local`),
   login: (user: IUserFormValues): Promise<IUser> => requests.post(`${URL_AUTH_API}/login`, user),
   register: (user: IUserFormValues): Promise<IUser> => requests.post(`${URL_AUTH_API}/register`, user),
+  fbLogin: (accessToken: string) => requests.post(`${URL_AUTH_API}/facebook`, { accessToken }),
 };
 
 const profilepath = `${URL_APP_API}/profiles`;

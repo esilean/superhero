@@ -1,21 +1,23 @@
 import React, { useContext } from 'react';
 import { Form as FinalForm, Field } from 'react-final-form';
 import { TextInput } from '../../app/common/form/text.input';
-import { Button, Form, Header } from 'semantic-ui-react';
+import { Button, Form, Header, Divider } from 'semantic-ui-react';
 import { RootStoreContext } from '../../app/stores/root.store';
 import { IUserFormValues } from '../../app/models/user';
 import { FORM_ERROR } from 'final-form';
 import { isRequired, combineValidators } from 'revalidate';
 import { ErrorMessage } from '../../app/common/form/error.message';
+import LoginFormFB from './login.form.FB';
+import { observer } from 'mobx-react-lite';
 
 const validate = combineValidators({
   email: isRequired('email'),
   password: isRequired('password'),
 });
 
-export const LoginForm = () => {
+const LoginForm = () => {
   const rootStore = useContext(RootStoreContext);
-  const { login } = rootStore.userStore;
+  const { login, loginFB, loadingSocial } = rootStore.userStore;
 
   return (
     <FinalForm
@@ -40,8 +42,12 @@ export const LoginForm = () => {
             content="Login"
             fluid
           />
+          <Divider horizontal>Or</Divider>
+          <LoginFormFB fbCallback={loginFB} loading={loadingSocial} />
         </Form>
       )}
     />
   );
 };
+
+export default observer(LoginForm);
