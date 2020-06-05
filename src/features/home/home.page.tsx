@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 import './styles.css';
 import { RootStoreContext } from '../../app/stores/root.store';
-import { LoginForm } from '../user/login.form';
+import LoginForm from '../user/login.form';
 import { RegisterForm } from '../user/register.form';
 
 const HomePage = () => {

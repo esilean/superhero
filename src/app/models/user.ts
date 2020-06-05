@@ -17,3 +17,14 @@ export interface IUserLocal {
   displayName: string;
   image?: string;
 }
+
+export interface IUserFBLogin {
+  accessToken: string;
+  email: string;
+  name: string;
+  picture: {
+    data: {
+      url: string;
+    };
+  };
+}

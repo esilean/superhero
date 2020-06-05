@@ -1,6 +1,6 @@
 import agent from '../api/agent';
 import { observable, computed, action, runInAction } from 'mobx';
-import { IUserLocal, IUserFormValues } from '../models/user';
+import { IUserLocal, IUserFormValues, IUserFBLogin } from '../models/user';
 import { RootStore } from './root.store';
 
 import { history } from '../../index';
@@ -13,10 +13,30 @@ export default class UserStore {
   }
 
   @observable user: IUserLocal | null = null;
+  @observable loadingSocial = false;
 
   @computed get isLoggedIn() {
     return !!this.user;
   }
+
+  @action loginFB = async (userLoginResp: IUserFBLogin) => {
+    this.loadingSocial = true;
+    try {
+      const user = await agent.User.fbLogin(userLoginResp.accessToken);
+      runInAction(() => {
+        this.user = user;
+        this.rootStore.modalStore.closeModal();
+        this.rootStore.commonStore.setToken(user.token);
+      });
+      history.push('/activities');
+    } catch (error) {
+      throw error;
+    } finally {
+      runInAction(() => {
+        this.loadingSocial = false;
+      });
+    }
+  };
 
   @action login = async (values: IUserFormValues) => {
     try {
