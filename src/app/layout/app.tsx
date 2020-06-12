@@ -40,22 +40,24 @@ const App: React.FC<RouteComponentProps> = ({ location }) => {
       <Route
         path={'/(.+)'}
         render={() => (
-          <>
+          <div className="container">
             <NavBar />
-            <Container className="body">
-              <Switch>
-                <PrivateRoute path="/activities" exact component={ActivityDashboard} />
-                <PrivateRoute path="/activities/:id" component={ActivityDetails} />
-                <PrivateRoute
-                  key={location.key}
-                  path={['/create-activity', '/activity/:id']}
-                  component={ActivityForm}
-                />
-                <PrivateRoute path="/profile/:username" component={ProfilePage} />
-                <PrivateRoute component={NotFound} />
-              </Switch>
-            </Container>
-          </>
+            <div className="body-content">
+              <div className="content">
+                <Switch>
+                  <PrivateRoute path="/activities" exact component={ActivityDashboard} />
+                  <PrivateRoute path="/activities/:id" component={ActivityDetails} />
+                  <PrivateRoute
+                    key={location.key}
+                    path={['/create-activity', '/activity/:id']}
+                    component={ActivityForm}
+                  />
+                  <PrivateRoute path="/profile/:username" component={ProfilePage} />
+                  <PrivateRoute component={NotFound} />
+                </Switch>
+              </div>
+            </div>
+          </div>
         )}
       />
     </>

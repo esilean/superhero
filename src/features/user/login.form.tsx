@@ -29,7 +29,7 @@ const LoginForm = () => {
       validate={validate}
       render={({ handleSubmit, submitting, submitError, invalid, pristine, dirtySinceLastSubmit }) => (
         <Form onSubmit={handleSubmit} error>
-          <Header as="h2" content="Login to Superhero Mettings" color="teal" textAlign="center" />
+          <Header as="h2" content="Login to Superhero" color="violet" textAlign="center" />
           <Field name="email" component={TextInput} placeholder="Email" />
           <Field name="password" component={TextInput} placeholder="Password" type="password" />
           {submitError && !dirtySinceLastSubmit && (
@@ -38,7 +38,7 @@ const LoginForm = () => {
           <Button
             disabled={(invalid && !dirtySinceLastSubmit) || pristine}
             loading={submitting}
-            color="teal"
+            color="violet"
             content="Login"
             fluid
           />

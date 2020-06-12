@@ -29,7 +29,7 @@ export const RegisterForm = () => {
       validate={validate}
       render={({ handleSubmit, submitting, form, submitError, invalid, pristine, dirtySinceLastSubmit }) => (
         <Form onSubmit={handleSubmit} error>
-          <Header as="h2" content="Register to Superhero Mettings" color="teal" textAlign="center" />
+          <Header as="h2" content="Register to Superhero" color="violet" textAlign="center" />
           <Field name="username" component={TextInput} placeholder="Username" />
           <Field name="displayName" component={TextInput} placeholder="Display Name" />
           <Field name="email" component={TextInput} placeholder="Email" />
@@ -38,7 +38,7 @@ export const RegisterForm = () => {
           <Button
             disabled={(invalid && !dirtySinceLastSubmit) || pristine}
             loading={submitting}
-            color="teal"
+            color="violet"
             content="Register"
             fluid
           />

@@ -74,7 +74,7 @@ const ActivityForm: React.FC<RouteComponentProps<DetailParams>> = ({ match, hist
 
   return (
     <Grid>
-      <Grid.Column width={10}>
+      <Grid.Column width={16}>
         <Segment clearing>
           <FinalForm
             validate={validate}

@@ -17,12 +17,14 @@ export const ActivityListItem: React.FC<IProps> = ({ activity }) => {
       <Segment>
         <Item.Group>
           <Item>
-            <Item.Image
-              size="tiny"
-              circular
-              src={host.image || '/assets/user.png'}
-              style={{ marginBottom: 3 }}
-            />
+            <Item.Content>
+              <Item.Image
+                size="tiny"
+                circular
+                src={host.image || '/assets/user.png'}
+                className="img-list-item"
+              />
+            </Item.Content>
             <Item.Content>
               <Item.Header as={Link} to={`/activities/${activity.id}`}>
                 {activity.title}

@@ -10,7 +10,7 @@ const ModalContainer = () => {
     closeModal,
   } = rootStore.modalStore;
   return (
-    <Modal open={open} onClose={closeModal} size="mini">
+    <Modal open={open} onClose={closeModal} size="mini" style={{ background: 'transparent' }}>
       <Modal.Content>{body}</Modal.Content>
     </Modal>
   );
